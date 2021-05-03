@@ -1,0 +1,113 @@
+PImage backgroundGame;
+int y;
+int randomNum;
+
+final int MENUSCREEN = 0;
+final int GAMESCREEN = 1;
+final int AGAINSCREEN = 2;
+int screenState;
+PFont f; 
+
+import processing.serial.*;
+Serial myPort;  // Create object from Serial class
+int screenStateArduino;
+
+
+
+void setup() {
+  size(1280, 720);
+  backgroundGame = loadImage("IMfinal.jpg");
+  randomNum = int(random(1, 5));
+
+  screenState = MENUSCREEN;
+  f = createFont("Georgia", 35);
+
+  String portName = Serial.list()[0]; //change the 0 to a 1 or 2 etc. to match your port
+  myPort = new Serial(this, portName, 9600);
+}
+
+void draw() {
+  if (screenState == MENUSCREEN) {
+    drawMenu();
+  } else if (screenState == GAMESCREEN) {
+    drawGame();
+  } else if (screenState == AGAINSCREEN) {
+    gameAgain();
+  } else {
+    println("Something went wrong!");
+  }
+}
+
+
+void drawGame() {
+  background(backgroundGame);
+  //randomNum = int(random(1,4));
+  println(randomNum);
+
+  if (randomNum == 1) {
+    circle(280, 650, 60);
+    myPort.write('1');
+  }
+
+  if (randomNum == 2) {
+    circle(280+150, 650, 60);
+    myPort.write('2');
+  }
+
+  if (randomNum == 3) {
+    circle(280+150+200, 650, 60);
+    myPort.write('3');
+  }
+
+  if (randomNum == 4) {
+    circle(280+150+200+300, 650, 60);
+    myPort.write('4');
+  }
+
+  if (myPort.available()>0) {
+
+    int inByte = myPort.read();
+    screenStateArduino = inByte;
+  }
+
+  if (screenStateArduino == 1) {
+    screenState = AGAINSCREEN;
+  } else if (screenStateArduino == 0) {
+    screenState = MENUSCREEN;
+  }
+}
+
+void drawMenu() {
+  background(0, 1, 30);
+  // stars
+  stroke (245, 237, 24);
+  for (float i = noise(width); i < width; i = i+random(width/2)) {
+    for (float j = noise(height); j < height; j = j+random(height/2)) {
+
+      line(i, j, i+2, j+2);
+    }
+  } 
+  textAlign(CENTER);
+  textSize(18);
+  textFont(f);
+  fill(255);
+  text("Click Anywhere to Start the Game!", width/2, height/1.5);
+  textSize(60);
+  text("Main Menu", width/2, height/8);
+  if (mousePressed == true) {
+    screenState = GAMESCREEN;
+    println("hello");
+  }
+}
+
+void gameAgain() {
+
+  if (screenStateArduino == 1) {
+    screenState = 1;
+    draw();
+  }
+  if (screenStateArduino == 0) {
+    screenState = 0;
+    draw();
+  }
+}
